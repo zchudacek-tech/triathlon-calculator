@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Triathlon Calculator</title>
+
+<link rel="manifest" href="manifest.json">
+
+<script>
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("service-worker.js")
+}
+</script>
+
+<style>
+body { font-family: system-ui; padding: 20px; max-width: 420px; margin: auto; }
+h1 { text-align: center; }
+input { width: 100%; padding: 8px; margin: 5px 0; font-size: 16px; }
+button { width: 100%; padding: 12px; font-size: 18px; margin-top: 10px; }
+.result { margin-top: 15px; font-size: 18px; }
+</style>
+</head>
+
+<body>
+
+<h1>🏊‍♂️🚴‍♂️🏃‍♂️ Triathlon Calculator</h1>
+
+<h3>Plavání</h3>
+<input id="swimDist" placeholder="Vzdálenost (m)">
+<input id="swimPace" placeholder="Tempo (min / 100 m)">
+
+<h3>Kolo</h3>
+<input id="bikeDist" placeholder="Vzdálenost (km)">
+<input id="bikeSpeed" placeholder="Rychlost (km/h)">
+
+<h3>Běh</h3>
+<input id="runDist" placeholder="Vzdálenost (km)">
+<input id="runPace" placeholder="Tempo (min / km)">
+
+<h3>Depa</h3>
+<input id="transitions" placeholder="T1 + T2 (min)">
+
+<button onclick="calculate()">Spočítat</button>
+
+<div class="result" id="result"></div>
+
+<script>
+function calculate() {
+  const swimTime =
+    (parseFloat(swimDist.value) / 100) *
+    parseFloat(swimPace.value)
+
+  const bikeTime =
+    parseFloat(bikeDist.value) /
+    parseFloat(bikeSpeed.value) * 60
+
+  const runTime =
+    parseFloat(runDist.value) *
+    parseFloat(runPace.value)
+
+  const trans = parseFloat(transitions.value || 0)
+
+  const total = swimTime + bikeTime + runTime + trans
+
+  result.innerHTML = `
+    🏊 ${swimTime.toFixed(1)} min<br>
+    🚴 ${bikeTime.toFixed(1)} min<br>
+    🏃 ${runTime.toFixed(1)} min<br>
+    ⏱️ Depa ${trans} min<br><br>
+    <strong>Celkem: ${format(total)}</strong>
+  `
+}
+
+function format(min) {
+  const h = Math.floor(min / 60)
+  const m = Math.round(min % 60)
+  return `${h}h ${m}min`
+}
+</script>
