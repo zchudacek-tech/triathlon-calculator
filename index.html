@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Triathlon Pro</title>
+
+<style>
+:root {
+  --bg:#000; --card:#1c1c1e; --input:#2c2c2e;
+  --txt:#fff; --muted:#8e8e93; --accent:#ccff00;
+}
+*{box-sizing:border-box}
+body{
+  margin:0; padding:12px 12px 90px;
+  background:var(--bg); color:var(--txt);
+  font-family:-apple-system,BlinkMacSystemFont,sans-serif;
+}
+h1{margin:4px 0 10px;font-size:1.3rem}
+.card{
+  background:var(--card); border-radius:14px;
+  padding:10px; margin-bottom:8px;
+}
+.row{display:grid; grid-template-columns:1fr 1fr; gap:8px}
+label{font-size:.65rem;color:var(--muted)}
+input[type=text],input[type=number]{background:var(--input);border:0;color:#fff;padding:6px;border-radius:8px;font-size:.9rem}
+input[type=range]{width:100%}
+.time{font-family:monospace;font-size:.8rem;color:var(--muted)}
+.total{
+  position:fixed; left:12px; right:12px; bottom:12px;
+  background:#111; border-radius:18px;
+  padding:12px; display:flex; justify-content:space-between
+}
+.total b{color:var(--accent); font-size:1.4rem}
+</style>
+</head>
+
+<body>
+
+<h1>Triathlon Pro</h1>
+
+<!-- PLAVÁNÍ -->
+<div class="card">
+<div class="row">
+<div>
+<label>Plavání m</label>
+<input id="swimDist" type="number" value="1900">
+</div>
+<div>
+<label>Tempo</label>
+<input id="swimPace" type="text" value="1:45">
+<input id="swimSlider" type="range" min="60" max="180" step="1" value="105">
+</div>
+</div>
+<div class="time" id="swimTime"></div>
+</div>
+
+<!-- T1 -->
+<div class="card">
+<label>Depo T1 (mm:ss)</label>
+<input id="t1Text" type="text" value="03:00">
+<input id="t1Slider" type="range" min="0" max="600" step="5" value="180">
+<div class="time" id="t1Time"></div>
+</div>
+
+<!-- KOLO -->
+<div class="card">
+<div class="row">
+<div>
+<label>Kolo km</label>
+<input id="bikeDist" type="number" value="90">
+</div>
+<div>
+<label>Rychlost km/h</label>
+<input id="bikeSpeed" type="number" value="32">
+<input id="bikeSlider" type="range" min="20" max="50" step="0.5" value="32">
+</div>
+</div>
+<div class="time" id="bikeTime"></div>
+</div>
+
+<!-- T2 -->
+<div class="card">
+<label>Depo T2 (mm:ss)</label>
+<input id="t2Text" type="text" value="02:30">
+<input id="t2Slider" type="range" min="0" max="600" step="5" value="150">
+<div class="time" id="t2Time"></div>
+</div>
+
+<!-- BĚH -->
+<div class="card">
+<div class="row">
+<div>
+<label>Běh km</label>
+<input id="runDist" type="number" value="21.1">
+</div>
+<div>
+<label>Tempo</label>
+<input id="runPace" type="text" value="5:00">
+<input id="runSlider" type="range" min="180" max="420" step="5" value="300">
+</div>
+</div>
+<div class="time" id="runTime"></div>
+</div>
+
+<div class="total">
+<div>Celkem</div>
+<b id="total"></b>
+</div>
+
+<script>
+const el=id=>document.getElementById(id);
+
+/* pomocné funkce */
+function secToPace(s){return Math.floor(s/60)+":"+String(s%60).padStart(2,"0")}
+function paceToSec(v){const p=v.split(":"); return +p[0]*60+(+p[1]||0)}
+function fmt(m){const h=Math.floor(m/60),mi=Math.floor(m%60),s=Math.floor(m*60%60);return `${h}:${String(mi).padStart(2,"0")}:${String(s).padStart(2,"0")}`}
+
+/* synchronizace slider/text + výpočet */
+function calc(){
+  const swim=(el("swimDist").value/100)*(el("swimSlider").value/60);
+  const bike=(el("bikeDist").value/el("bikeSlider").value)*60;
+  const run=el("runDist").value*(el("runSlider").value/60);
+  const t1=paceToSec(el("t1Text").value)/60;
+  const t2=paceToSec(el("t2Text").value)/60;
+
+  el("swimTime").textContent=fmt(swim);
+  el("bikeTime").textContent=fmt(bike);
+  el("runTime").textContent=fmt(run);
+  el("t1Time").textContent=fmt(t1);
+  el("t2Time").textContent=fmt(t2);
+  el("total").textContent=fmt(swim+bike+run+t1+t2);
+}
+
+/* Plavání */
+el("swimSlider").addEventListener("input",()=>{
+  el("swimPace").value=secToPace(+el("swimSlider").value);
+  calc();
+});
+el("swimPace").addEventListener("input",()=>{
+  el("swimSlider").value=paceToSec(el("swimPace").value);
+  calc();
+});
+
+/* Běh */
+el("runSlider").addEventListener("input",()=>{
+  el("runPace").value=secToPace(+el("runSlider").value);
+  calc();
+});
+el("runPace").addEventListener("input",()=>{
+  el("runSlider").value=paceToSec(el("runPace").value);
+  calc();
+});
+
+/* Kolo */
+el("bikeSlider").addEventListener("input",()=>{
+  el("bikeSpeed").value=el("bikeSlider").value;
+  calc();
+});
+el("bikeSpeed").addEventListener("input",()=>{
+  el("bikeSlider").value=el("bikeSpeed").value;
+  calc();
+});
+
+/* Depa T1 */
+el("t1Slider").addEventListener("input",()=>{
+  el("t1Text").value=secToPace(+el("t1Slider").value);
+  calc();
+});
+el("t1Text").addEventListener("input",()=>{
+  el("t1Slider").value=paceToSec(el("t1Text").value);
+  calc();
+});
+
+/* Depa T2 */
+el("t2Slider").addEventListener("input",()=>{
+  el("t2Text").value=secToPace(+el("t2Slider").value);
+  calc();
+});
+el("t2Text").addEventListener("input",()=>{
+  el("t2Slider").value=paceToSec(el("t2Text").value);
+  calc();
+});
+
+calc();
+</script>
+
+</body>
+</html>
